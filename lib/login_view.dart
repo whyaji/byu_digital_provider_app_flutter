@@ -1,4 +1,7 @@
+import 'package:byu_digital_provider_app_flutter/register_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'data/account_info.dart';
 import 'main.dart';
@@ -15,11 +18,14 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
   bool remember = false;
-  String name = '', nim = '';
+  String name = '';
 
   saveToLocalStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -55,10 +61,6 @@ class _LoginState extends State<Login> {
     });
     loadName().then((value) {
       name = value;
-      setState(() {});
-    });
-    loadNim().then((value) {
-      nim = value;
       setState(() {});
     });
     super.initState();
@@ -168,7 +170,10 @@ class _LoginState extends State<Login> {
                     TextButton(
                       child: const Text('Daftar'),
                       onPressed: () {
-                        //signup screen
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(builder: (context) {
+                          return const Register();
+                        }));
                       },
                     )
                   ],
@@ -182,30 +187,31 @@ class _LoginState extends State<Login> {
     );
   }
 
-  Future<void> login() async {
-    if (check()) {
-      remember = true;
+  void login() {
+    FirebaseAuth.instance
+        .signInWithEmailAndPassword(
+            email: nameController.text, password: passwordController.text)
+        .then((value) {
+      nameController.clear();
+      passwordController.clear();
       saveToLocalStorage();
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-        return const Home();
-      }));
-    } else {
+      Account.primary = AccountInfo(name: name, phoneNumber: '0822', pulsa: 0);
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => const Home()));
+    }).onError((error, stackTrace) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("GAGAL LOGIN"),
         ),
       );
-    }
+      print("Error ${error.toString()}");
+    });
   }
 
   bool check() {
     for (Map<String, dynamic> item in DummyData.data) {
       if (item['username'] == nameController.text &&
           item['password'] == passwordController.text) {
-        nameController.clear();
-        passwordController.clear();
-        saveToLocalAccountStorage(item['nama'], item['Nim']);
-        Account.primary = AccountInfo(name: name, phoneNumber: nim, pulsa: 0);
         return true;
       }
     }

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "530296988078",
+    "project_id": "byu-digital-provider",
+    "storage_bucket": "byu-digital-provider.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:530296988078:android:26b5cb3b981eddb4cea83f",
+        "android_client_info": {
+          "package_name": "com.example.byu_digital_provider_app_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "530296988078-5h9h2hqlmsgdukd22a8rb4q0f9b3seuu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJmuTvdu2cwqe4mCZfStaJuP7Dc0GjVTw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "530296988078-5h9h2hqlmsgdukd22a8rb4q0f9b3seuu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
