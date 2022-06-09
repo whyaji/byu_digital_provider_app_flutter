@@ -1,3 +1,4 @@
+import 'package:byu_digital_provider_app_flutter/auth.dart';
 import 'package:byu_digital_provider_app_flutter/register_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -18,9 +19,6 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn googleSignIn = GoogleSignIn();
-
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -187,34 +185,28 @@ class _LoginState extends State<Login> {
     );
   }
 
-  void login() {
-    FirebaseAuth.instance
-        .signInWithEmailAndPassword(
-            email: nameController.text, password: passwordController.text)
-        .then((value) {
+  AuthenticationService service = AuthenticationService(FirebaseAuth.instance);
+
+  Future<void> login() async {
+    var noHp = '0851';
+    if (await service.signIn(
+        email: nameController.text, password: passwordController.text)) {
+      remember = true;
+      saveToLocalStorage();
+      saveToLocalAccountStorage(nameController.text, noHp);
+      Account.primary =
+          AccountInfo(name: nameController.text, phoneNumber: noHp, pulsa: 0);
       nameController.clear();
       passwordController.clear();
-      saveToLocalStorage();
-      Account.primary = AccountInfo(name: name, phoneNumber: '0822', pulsa: 0);
+      Navigator.pop(context);
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => const Home()));
-    }).onError((error, stackTrace) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("GAGAL LOGIN"),
         ),
       );
-      print("Error ${error.toString()}");
-    });
-  }
-
-  bool check() {
-    for (Map<String, dynamic> item in DummyData.data) {
-      if (item['username'] == nameController.text &&
-          item['password'] == passwordController.text) {
-        return true;
-      }
     }
-    return false;
   }
 }

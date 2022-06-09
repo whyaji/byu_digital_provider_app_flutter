@@ -51,6 +51,7 @@ class _HomeState extends State<Home> {
               onPressed: () {
                 clearLocalData();
                 setState(() {});
+                Navigator.pop(context);
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (context) {
                   return const Login();
@@ -158,12 +159,13 @@ class _HomeState extends State<Home> {
                                           ),
                                           onPressed: () async {
                                             Home.initialTabTopup = 0;
-                                            Navigator.of(context).push(
+                                            await Navigator.of(context).push(
                                               MaterialPageRoute(
                                                   builder: (context) {
                                                 return const TopUp();
                                               }),
                                             );
+                                            setState(() {});
                                           },
                                           child: SizedBox(
                                             height: 60,
@@ -195,12 +197,13 @@ class _HomeState extends State<Home> {
                                         ),
                                         onPressed: () async {
                                           Home.initialTabTopup = 1;
-                                          Navigator.of(context).push(
+                                          await Navigator.of(context).push(
                                             MaterialPageRoute(
                                                 builder: (context) {
                                               return const TopUp();
                                             }),
                                           );
+                                          setState(() {});
                                         },
                                         child: SizedBox(
                                           height: 60,
@@ -233,12 +236,13 @@ class _HomeState extends State<Home> {
                                         ),
                                         onPressed: () async {
                                           Home.initialTabTopup = 2;
-                                          Navigator.of(context).push(
+                                          await Navigator.of(context).push(
                                             MaterialPageRoute(
                                                 builder: (context) {
                                               return const TopUp();
                                             }),
                                           );
+                                          setState(() {});
                                         },
                                         child: SizedBox(
                                           height: 60,

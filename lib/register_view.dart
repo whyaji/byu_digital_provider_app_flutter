@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 
+import 'auth.dart';
 import 'themes/themes.dart';
 
 class Register extends StatefulWidget {
@@ -148,19 +149,7 @@ class _RegisterState extends State<Register> {
                     child: ElevatedButton(
                       child: const Text('Daftar'),
                       onPressed: () {
-                        FirebaseAuth.instance
-                            .createUserWithEmailAndPassword(
-                                email: emailController.text,
-                                password: passwordController.text)
-                            .then((value) {
-                          print("Created New Account");
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const Login()));
-                        }).onError((error, stackTrace) {
-                          print("Error ${error.toString()}");
-                        });
+                        register();
                       },
                     )),
                 const Spacer(
@@ -172,6 +161,23 @@ class _RegisterState extends State<Register> {
         ],
       ),
     );
+  }
+
+  AuthenticationService service = AuthenticationService(FirebaseAuth.instance);
+
+  Future<void> register() async {
+    if (await service.signUp(
+        email: emailController.text, password: passwordController.text)) {
+      Navigator.pop(context);
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => const Login()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("GAGAL REGISTER"),
+        ),
+      );
+    }
   }
 
   String insertNumber() {
