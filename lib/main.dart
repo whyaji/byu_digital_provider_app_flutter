@@ -1,14 +1,16 @@
-import 'package:byu_digital_provider_app_flutter/notification_handler.dart';
+import 'package:byu_digital_provider_app_flutter/pages/home_view.dart';
+import 'package:byu_digital_provider_app_flutter/models/account_info.dart';
+import 'package:byu_digital_provider_app_flutter/pages/login_view.dart';
+import 'package:byu_digital_provider_app_flutter/services/firebase_options.dart';
+import 'package:byu_digital_provider_app_flutter/services/internet_package_services.dart';
+import 'package:byu_digital_provider_app_flutter/services/notification_handler.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'data/account_info.dart';
-import 'firebase_options.dart';
-import 'home_view.dart';
-import 'login_view.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
     'high_importance_channel', // id
@@ -52,39 +54,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final String title = 'by.U';
-  bool remember = false;
-  String name = '', nim = '';
-
-  // This widget is the root of your application.
-  Future<bool> loadRemember() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('remember') ?? false;
-  }
-
-  Future<String> loadName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('name') ?? '';
-  }
-
-  Future<String> loadNim() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('nim') ?? '';
-  }
-
   @override
   void initState() {
-    loadRemember().then((value) {
-      remember = value;
-      setState(() {});
-    });
-    loadName().then((value) {
-      name = value;
-      setState(() {});
-    });
-    loadNim().then((value) {
-      nim = value;
-      setState(() {});
-    });
     super.initState();
 
     FirebaseMessaging.instance.getInitialMessage().then((message) {
@@ -150,29 +121,28 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: title,
-      home: initialPages(),
-    );
-  }
+  Widget build(BuildContext context) => ChangeNotifierProvider(
+      create: (context) => InternetPackageProvider(),
+      child: MaterialApp(
+        title: title,
+        home: initialPages(),
+      ));
 
   Widget initialPages() {
-    setState(() {});
-    if (remember) {
-      Account.primary = AccountInfo(name: name, phoneNumber: nim, pulsa: 0);
-      return Pages.home;
+    var user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      Account.primary = AccountInfo(
+          name: user.email.toString(),
+          email: user.email.toString(),
+          phoneNumber: '0822',
+          pulsa: 0);
+      return const Home();
     } else {
-      return Pages.login;
+      return const Login();
     }
   }
 }
 
 class Account {
   static late AccountInfo primary;
-}
-
-class Pages {
-  static const home = Home();
-  static const login = Login();
 }

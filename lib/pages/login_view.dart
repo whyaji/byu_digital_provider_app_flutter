@@ -1,26 +1,31 @@
-import 'dart:math';
-
-import 'package:byu_digital_provider_app_flutter/login_view.dart';
+import 'package:byu_digital_provider_app_flutter/models/account_info.dart';
+import 'package:byu_digital_provider_app_flutter/main.dart';
+import 'package:byu_digital_provider_app_flutter/services/auth.dart';
+import 'package:byu_digital_provider_app_flutter/pages/register_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:byu_digital_provider_app_flutter/themes/themes.dart';
+import 'home_view.dart';
 
-import 'auth.dart';
-import 'themes/themes.dart';
-
-class Register extends StatefulWidget {
-  const Register({Key? key}) : super(key: key);
+class Login extends StatefulWidget {
+  const Login({Key? key}) : super(key: key);
+  static const firstColor = Color.fromARGB(255, 0, 119, 255);
 
   @override
-  State<Register> createState() => _RegisterState();
+  State<Login> createState() => _LoginState();
 }
 
-class _RegisterState extends State<Register> {
+class _LoginState extends State<Login> {
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController nomorController = TextEditingController();
+
+  bool remember = false;
+  String name = '';
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +58,7 @@ class _RegisterState extends State<Register> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Daftar',
+                  'Masuk',
                   style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 30,
@@ -63,7 +68,7 @@ class _RegisterState extends State<Register> {
                   flex: 1,
                 ),
                 const Text(
-                  'Daftar dan join by.U',
+                  'Login untuk lihat akun kamu yuk',
                   style: TextStyle(fontFamily: 'Gilroy', fontSize: 15),
                 ),
                 const Spacer(
@@ -82,20 +87,10 @@ class _RegisterState extends State<Register> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   child: TextField(
-                    controller: emailController,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Email',
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  child: TextField(
                     controller: nameController,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Nama Lengkap',
+                      labelText: 'User Name',
                     ),
                   ),
                 ),
@@ -110,50 +105,40 @@ class _RegisterState extends State<Register> {
                     ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-                  child: TextField(
-                    enabled: false,
-                    controller: nomorController,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Nomor kamu nanti',
-                    ),
+                TextButton(
+                  onPressed: () {
+                    //forgot password screen
+                  },
+                  child: const Text(
+                    'Lupa Pasword?',
                   ),
-                ),
-                Container(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-                    child: ElevatedButton.icon(
-                      icon: const Icon(
-                          Icons.refresh), //icon data for elevated button
-                      label: const Text("Refresh nomor"), //label text
-                      style: ElevatedButton.styleFrom(
-                          primary: Colors
-                              .blueAccent //elevated btton background color
-                          ),
-                      onPressed: () {
-                        final updatedText = insertNumber();
-                        nomorController.value = nomorController.value.copyWith(
-                          text: updatedText,
-                          selection: TextSelection.collapsed(
-                              offset: updatedText.length),
-                        );
-                      },
-                    )),
-                const Spacer(
-                  flex: 5,
                 ),
                 Container(
                     height: 50,
                     padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                     child: ElevatedButton(
-                      child: const Text('Daftar'),
+                      child: const Text('Masuk'),
                       onPressed: () {
-                        register();
+                        login();
                       },
                     )),
                 const Spacer(
-                  flex: 30,
+                  flex: 20,
+                ),
+                Row(
+                  children: <Widget>[
+                    const Text('Tidak punya akun?'),
+                    TextButton(
+                      child: const Text('Daftar'),
+                      onPressed: () {
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(builder: (context) {
+                          return const Register();
+                        }));
+                      },
+                    )
+                  ],
+                  mainAxisAlignment: MainAxisAlignment.center,
                 ),
               ],
             ),
@@ -163,30 +148,25 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  AuthenticationService service = AuthenticationService(FirebaseAuth.instance);
-
-  Future<void> register() async {
-    if (await service.signUp(
-        email: emailController.text, password: passwordController.text)) {
+  Future<void> login() async {
+    if (await AuthenticationService(FirebaseAuth.instance).signIn(
+        email: nameController.text, password: passwordController.text)) {
+      Account.primary = AccountInfo(
+          name: nameController.text,
+          email: nameController.text,
+          phoneNumber: '0822',
+          pulsa: 0);
+      nameController.clear();
+      passwordController.clear();
       Navigator.pop(context);
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const Login()));
+          context, MaterialPageRoute(builder: (context) => const Home()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("GAGAL REGISTER"),
+          content: Text("GAGAL LOGIN"),
         ),
       );
     }
-  }
-
-  String insertNumber() {
-    String number = '0851';
-    var rndnumber = "";
-    var rnd = Random();
-    for (var i = 0; i < 8; i++) {
-      rndnumber = rndnumber + rnd.nextInt(9).toString();
-    }
-    return number + rndnumber.toString();
   }
 }

@@ -1,7 +1,8 @@
 import 'package:byu_digital_provider_app_flutter/main.dart';
 import 'package:flutter/material.dart';
+import '../widgets/add_package.dart';
 import 'home_view.dart';
-import 'themes/themes.dart';
+import 'package:byu_digital_provider_app_flutter/themes/themes.dart';
 
 class TopUp extends StatefulWidget {
   const TopUp({Key? key}) : super(key: key);
@@ -90,8 +91,8 @@ class _TopUpState extends State<TopUp> {
           ),
         ),
         body: TabBarView(children: <Widget>[
-          const Center(
-            child: Text("Data"),
+          Center(
+            child: AddPackageDialogWidget(),
           ),
           const Center(
             child: Text("Topping"),

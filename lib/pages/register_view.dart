@@ -1,68 +1,23 @@
-import 'package:byu_digital_provider_app_flutter/auth.dart';
-import 'package:byu_digital_provider_app_flutter/register_view.dart';
+import 'dart:math';
+
+import 'package:byu_digital_provider_app_flutter/pages/login_view.dart';
+import 'package:byu_digital_provider_app_flutter/services/auth.dart';
+import 'package:byu_digital_provider_app_flutter/themes/themes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'data/account_info.dart';
-import 'main.dart';
-import 'themes/themes.dart';
-import 'data/dummy_data.dart';
-import 'home_view.dart';
 
-class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
-  static const firstColor = Color.fromARGB(255, 0, 119, 255);
+class Register extends StatefulWidget {
+  const Register({Key? key}) : super(key: key);
 
   @override
-  State<Login> createState() => _LoginState();
+  State<Register> createState() => _RegisterState();
 }
 
-class _LoginState extends State<Login> {
+class _RegisterState extends State<Register> {
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-
-  bool remember = false;
-  String name = '';
-
-  saveToLocalStorage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool('remember', remember);
-  }
-
-  saveToLocalAccountStorage(String name, String nim) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('name', name);
-    prefs.setString('nim', nim);
-  }
-
-  Future<bool> loadRemember() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('remember') ?? false;
-  }
-
-  Future<String> loadName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('name') ?? '';
-  }
-
-  Future<String> loadNim() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('nim') ?? '';
-  }
-
-  @override
-  void initState() {
-    loadRemember().then((value) {
-      remember = value;
-      setState(() {});
-    });
-    loadName().then((value) {
-      name = value;
-      setState(() {});
-    });
-    super.initState();
-  }
+  TextEditingController emailController = TextEditingController();
+  TextEditingController nomorController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +50,7 @@ class _LoginState extends State<Login> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Masuk',
+                  'Daftar',
                   style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 30,
@@ -105,7 +60,7 @@ class _LoginState extends State<Login> {
                   flex: 1,
                 ),
                 const Text(
-                  'Login untuk lihat akun kamu yuk',
+                  'Daftar dan join by.U',
                   style: TextStyle(fontFamily: 'Gilroy', fontSize: 15),
                 ),
                 const Spacer(
@@ -124,10 +79,20 @@ class _LoginState extends State<Login> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   child: TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Email',
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: TextField(
                     controller: nameController,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'User Name',
+                      labelText: 'Nama Lengkap',
                     ),
                   ),
                 ),
@@ -142,40 +107,50 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    //forgot password screen
-                  },
-                  child: const Text(
-                    'Lupa Pasword?',
+                Container(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                  child: TextField(
+                    enabled: false,
+                    controller: nomorController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Nomor kamu nanti',
+                    ),
                   ),
+                ),
+                Container(
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                    child: ElevatedButton.icon(
+                      icon: const Icon(
+                          Icons.refresh), //icon data for elevated button
+                      label: const Text("Refresh nomor"), //label text
+                      style: ElevatedButton.styleFrom(
+                          primary: Colors
+                              .blueAccent //elevated btton background color
+                          ),
+                      onPressed: () {
+                        final updatedText = insertNumber();
+                        nomorController.value = nomorController.value.copyWith(
+                          text: updatedText,
+                          selection: TextSelection.collapsed(
+                              offset: updatedText.length),
+                        );
+                      },
+                    )),
+                const Spacer(
+                  flex: 5,
                 ),
                 Container(
                     height: 50,
                     padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                     child: ElevatedButton(
-                      child: const Text('Masuk'),
+                      child: const Text('Daftar'),
                       onPressed: () {
-                        login();
+                        register();
                       },
                     )),
                 const Spacer(
-                  flex: 20,
-                ),
-                Row(
-                  children: <Widget>[
-                    const Text('Tidak punya akun?'),
-                    TextButton(
-                      child: const Text('Daftar'),
-                      onPressed: () {
-                        Navigator.of(context)
-                            .push(MaterialPageRoute(builder: (context) {
-                          return const Register();
-                        }));
-                      },
-                    )
-                  ],
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  flex: 30,
                 ),
               ],
             ),
@@ -187,26 +162,28 @@ class _LoginState extends State<Login> {
 
   AuthenticationService service = AuthenticationService(FirebaseAuth.instance);
 
-  Future<void> login() async {
-    var noHp = '0851';
-    if (await service.signIn(
-        email: nameController.text, password: passwordController.text)) {
-      remember = true;
-      saveToLocalStorage();
-      saveToLocalAccountStorage(nameController.text, noHp);
-      Account.primary =
-          AccountInfo(name: nameController.text, phoneNumber: noHp, pulsa: 0);
-      nameController.clear();
-      passwordController.clear();
+  Future<void> register() async {
+    if (await service.signUp(
+        email: emailController.text, password: passwordController.text)) {
       Navigator.pop(context);
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const Home()));
+          context, MaterialPageRoute(builder: (context) => const Login()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("GAGAL LOGIN"),
+          content: Text("GAGAL REGISTER"),
         ),
       );
     }
+  }
+
+  String insertNumber() {
+    String number = '0851';
+    var rndnumber = "";
+    var rnd = Random();
+    for (var i = 0; i < 8; i++) {
+      rndnumber = rndnumber + rnd.nextInt(9).toString();
+    }
+    return number + rndnumber.toString();
   }
 }

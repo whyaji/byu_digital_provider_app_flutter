@@ -1,13 +1,21 @@
 class AccountInfo {
   final String name;
+  final String email;
   final String phoneNumber;
   int pulsa;
 
   AccountInfo(
-      {required this.name, required this.phoneNumber, required this.pulsa});
+      {required this.name,
+      required this.email,
+      required this.phoneNumber,
+      required this.pulsa});
 
   String getName() {
     return name;
+  }
+
+  String getEmail() {
+    return email;
   }
 
   String getPhoneNumber() {

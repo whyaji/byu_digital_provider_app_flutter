@@ -1,9 +1,11 @@
-import 'package:byu_digital_provider_app_flutter/login_view.dart';
 import 'package:byu_digital_provider_app_flutter/main.dart';
+import 'package:byu_digital_provider_app_flutter/pages/login_view.dart';
+import 'package:byu_digital_provider_app_flutter/pages/package_view.dart';
+import 'package:byu_digital_provider_app_flutter/pages/topup_view.dart';
+import 'package:byu_digital_provider_app_flutter/services/auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'themes/themes.dart';
-import 'topup_view.dart';
+import '../themes/themes.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -13,11 +15,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  clearLocalData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.clear();
-  }
-
   @override
   Widget build(BuildContext context) {
     List<Tab> myTab = [
@@ -48,14 +45,22 @@ class _HomeState extends State<Home> {
           ),
           leading: IconButton(
               icon: const Icon(Icons.people),
-              onPressed: () {
-                clearLocalData();
+              onPressed: () async {
                 setState(() {});
-                Navigator.pop(context);
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) {
-                  return const Login();
-                }));
+                if (await AuthenticationService(FirebaseAuth.instance)
+                    .signOut()) {
+                  Navigator.pop(context);
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (context) {
+                    return const Login();
+                  }));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("GAGAL LOGOUT"),
+                    ),
+                  );
+                }
               }),
           actions: const [
             Padding(
@@ -309,7 +314,14 @@ class _HomeState extends State<Home> {
                                       primary: transparentColor,
                                       shadowColor: transparentColor,
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () async {
+                                      await Navigator.of(context).push(
+                                        MaterialPageRoute(builder: (context) {
+                                          return packageListPage();
+                                        }),
+                                      );
+                                      setState(() {});
+                                    },
                                     child: Row(
                                       children: [
                                         Text('Lihat Detail  ',
