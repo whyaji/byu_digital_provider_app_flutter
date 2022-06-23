@@ -12,7 +12,7 @@ class PackageListWidget extends StatelessWidget {
     return packages.isEmpty
         ? Center(
             child: Text(
-              'No packages.',
+              'Anda tidak mempunyai paket',
               style: TextStyle(fontSize: 20),
             ),
           )
